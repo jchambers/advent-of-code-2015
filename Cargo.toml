@@ -12,4 +12,9 @@ name = "day02"
 [[bin]]
 name = "day03"
 
+[[bin]]
+name = "day04"
+
 [dependencies]
+md5 = "0.7.0"
+num_cpus = "1.14.0"
