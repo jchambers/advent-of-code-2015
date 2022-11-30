@@ -6,7 +6,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::ops::AddAssign;
-use crate::Move::{EAST, NORTH, SOUTH, WEST};
+use crate::Move::{East, North, South, West};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             file.read_to_string(&mut directions)?;
 
             directions.chars()
-                .map(|c| Move::try_from(c))
+                .map(Move::try_from)
                 .collect::<Result<Vec<Move>, Box<dyn Error>>>()?
         };
 
@@ -33,10 +33,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 enum Move {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST
+    North,
+    South,
+    East,
+    West,
 }
 
 impl TryFrom<char> for Move {
@@ -44,10 +44,10 @@ impl TryFrom<char> for Move {
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
         match c {
-            '^' => Ok(NORTH),
-            'v' => Ok(SOUTH),
-            '>' => Ok(EAST),
-            '<' => Ok(WEST),
+            '^' => Ok(North),
+            'v' => Ok(South),
+            '>' => Ok(East),
+            '<' => Ok(West),
             _ => Err("Illegal direction".into())
         }
     }
@@ -59,10 +59,10 @@ struct Position(i32, i32);
 impl AddAssign<&Move> for Position {
     fn add_assign(&mut self, rhs: &Move) {
         match rhs {
-            NORTH => self.1 += 1,
-            SOUTH => self.1 -= 1,
-            EAST => self.0 += 1,
-            WEST => self.0 -= 1,
+            North => self.1 += 1,
+            South => self.1 -= 1,
+            East => self.0 += 1,
+            West => self.0 -= 1,
         };
     }
 }
@@ -89,18 +89,18 @@ fn distinct_houses_visited(moves: &[Move], actors: usize) -> u32 {
 #[cfg(test)]
 mod test {
     use crate::distinct_houses_visited;
-    use crate::Move::{EAST, NORTH, SOUTH, WEST};
+    use crate::Move::{East, North, South, West};
 
     #[test]
     fn test_distinct_houses_visited() {
-        assert_eq!(2, distinct_houses_visited(&[EAST], 1));
-        assert_eq!(4, distinct_houses_visited(&[NORTH, EAST, SOUTH, WEST], 1));
+        assert_eq!(2, distinct_houses_visited(&[East], 1));
+        assert_eq!(4, distinct_houses_visited(&[North, East, South, West], 1));
         assert_eq!(2, distinct_houses_visited(
-            &[NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH], 1));
+            &[North, South, North, South, North, South, North, South, North, South], 1));
 
-        assert_eq!(3, distinct_houses_visited(&[NORTH, SOUTH], 2));
-        assert_eq!(3, distinct_houses_visited(&[NORTH, EAST, SOUTH, WEST], 2));
+        assert_eq!(3, distinct_houses_visited(&[North, South], 2));
+        assert_eq!(3, distinct_houses_visited(&[North, East, South, West], 2));
         assert_eq!(11, distinct_houses_visited(
-            &[NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH], 2));
+            &[North, South, North, South, North, South, North, South, North, South], 2));
     }
 }
