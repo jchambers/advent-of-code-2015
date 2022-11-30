@@ -23,7 +23,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .collect::<Result<Vec<Move>, Box<dyn Error>>>()?
         };
 
-        println!("Distinct houses visited: {}", distinct_houses_visited(&moves));
+        println!("Distinct houses visited by single actor: {}", distinct_houses_visited(&moves, 1));
+        println!("Distinct houses visited by two actors: {}", distinct_houses_visited(&moves, 2));
 
         Ok(())
     } else {
@@ -66,17 +67,22 @@ impl AddAssign<&Move> for Position {
     }
 }
 
-fn distinct_houses_visited(moves: &[Move]) -> u32 {
-    let mut visited_houses: HashSet<Position> = moves.iter()
-        .scan(Position(0, 0), |position, mov| {
-            *position += mov;
+fn distinct_houses_visited(moves: &[Move], actors: usize) -> u32 {
+    let mut visited_houses = HashSet::new();
 
-            Some(*position)
-        })
-        .collect();
+    for actor in 0..actors {
+        visited_houses.extend(
+            moves.iter()
+                .skip(actor)
+                .step_by(actors)
+                .scan(Position(0, 0), |position, mov| {
+                    *position += mov;
+
+                    Some(*position)
+                }));
+    }
 
     visited_houses.insert(Position(0, 0));
-
     visited_houses.len() as u32
 }
 
@@ -87,8 +93,14 @@ mod test {
 
     #[test]
     fn test_distinct_houses_visited() {
-        assert_eq!(2, distinct_houses_visited(&[EAST]));
-        assert_eq!(4, distinct_houses_visited(&[NORTH, EAST, SOUTH, WEST]));
-        assert_eq!(2, distinct_houses_visited(&[NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH]));
+        assert_eq!(2, distinct_houses_visited(&[EAST], 1));
+        assert_eq!(4, distinct_houses_visited(&[NORTH, EAST, SOUTH, WEST], 1));
+        assert_eq!(2, distinct_houses_visited(
+            &[NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH], 1));
+
+        assert_eq!(3, distinct_houses_visited(&[NORTH, SOUTH], 2));
+        assert_eq!(3, distinct_houses_visited(&[NORTH, EAST, SOUTH, WEST], 2));
+        assert_eq!(11, distinct_houses_visited(
+            &[NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH, NORTH, SOUTH], 2));
     }
 }
