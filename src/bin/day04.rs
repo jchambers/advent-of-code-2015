@@ -36,14 +36,9 @@ fn find_advent_coin(key: &str, leading_zeroes: usize, threads: usize) -> u32 {
         let prefix = "0".repeat(leading_zeroes);
 
         handles.push(thread::spawn(move || loop {
-            let done = {
-                let done = found_advent_coin.lock().unwrap();
-                *done
-            };
-
-            if done {
+            if *found_advent_coin.lock().unwrap() {
                 break;
-            }
+            };
 
             let n = {
                 let mut n = counter.lock().unwrap();
@@ -56,10 +51,7 @@ fn find_advent_coin(key: &str, leading_zeroes: usize, threads: usize) -> u32 {
 
             if format!("{:x}", digest).starts_with(&prefix) {
                 match tx.send(n) {
-                    Ok(_) => {
-                        let mut found_coin = found_advent_coin.lock().unwrap();
-                        *found_coin = true;
-                    }
+                    Ok(_) => {}
                     Err(_) => break,
                 }
             }
@@ -68,6 +60,10 @@ fn find_advent_coin(key: &str, leading_zeroes: usize, threads: usize) -> u32 {
 
     let first_coin = rx.recv().unwrap();
     drop(rx);
+
+    let mut found_coin = found_advent_coin.lock().unwrap();
+    *found_coin = true;
+    drop(found_coin);
 
     for handle in handles {
         handle.join().unwrap();
