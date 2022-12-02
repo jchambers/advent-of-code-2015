@@ -12,11 +12,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         let strings: Vec<String> = BufReader::new(file).lines()
             .collect::<io::Result<Vec<String>>>()?;
 
-        let nice_strings = strings.iter()
+        println!("Nice strings: {}", strings.iter()
             .filter(|string| is_nice(string))
-            .count();
+            .count());
 
-        println!("Nice strings: {}", nice_strings);
+        println!("More different nice strings: {}", strings.iter()
+            .filter(|string| more_different_is_nice(string))
+            .count());
 
         Ok(())
     } else {
@@ -53,6 +55,30 @@ fn is_nice(string: &str) -> bool {
     true
 }
 
+fn more_different_is_nice(string: &str) -> bool {
+    has_repeated_non_overlapping_pair(string) && has_straddling_pair(string)
+}
+
+fn has_repeated_non_overlapping_pair(string: &str) -> bool {
+    for offset in 0..string.len() - 3 {
+        let substring = &string[offset..];
+        let needle = &substring[0..2];
+        let haystack = &substring[2..];
+
+        if haystack.contains(needle) {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn has_straddling_pair(string: &str) -> bool {
+    string.chars()
+        .tuple_windows()
+        .any(|(a, _, b)| a == b)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -64,5 +90,28 @@ mod test {
         assert!(!is_nice("jchzalrnumimnmhp"));
         assert!(!is_nice("haegwjzuvuyypxyu"));
         assert!(!is_nice("dvszwmarrgswjxmb"));
+    }
+
+    #[test]
+    fn test_has_repeated_non_overlapping_pair() {
+        assert!(has_repeated_non_overlapping_pair("xyxy"));
+        assert!(has_repeated_non_overlapping_pair("aabcdefgaa"));
+        assert!(!has_repeated_non_overlapping_pair("aaa"));
+    }
+
+    #[test]
+    fn test_has_straddling_pair() {
+        assert!(has_straddling_pair("xyx"));
+        assert!(has_straddling_pair("abcdefeghi"));
+        assert!(has_straddling_pair("aaa"));
+        assert!(!has_straddling_pair("nope"));
+    }
+
+    #[test]
+    fn test_more_different_is_nice() {
+        assert!(more_different_is_nice("qjhvhtzxzqqjkmpb"));
+        assert!(more_different_is_nice("xxyxx"));
+        assert!(!more_different_is_nice("uurcxstgmygtbstg"));
+        assert!(!more_different_is_nice("ieodomkazucvgmuy"));
     }
 }
