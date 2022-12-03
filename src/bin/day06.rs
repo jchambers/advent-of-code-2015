@@ -40,6 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Err("Usage: day06 INPUT_FILE_PATH".into())
     }
 }
+
 struct LightGrid {
     lights: Vec<u32>,
 

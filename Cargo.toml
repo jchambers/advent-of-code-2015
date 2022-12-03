@@ -21,7 +21,11 @@ name = "day05"
 [[bin]]
 name = "day06"
 
+[[bin]]
+name = "day07"
+
 [dependencies]
+indoc = "1.0"
 itertools = "0.10.5"
 lazy_static = "1.4.0"
 md5 = "0.7.0"
