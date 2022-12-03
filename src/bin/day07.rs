@@ -8,13 +8,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
 
     if let Some(path) = args.get(1) {
-        let file = File::open(path)?;
+        let wire_a_value = {
+            let mut circuit = Circuit::from_lines(BufReader::new(File::open(path)?)
+                .lines()
+                .filter_map(|line| line.ok()))?;
 
-        let mut circuit = Circuit::from_lines(BufReader::new(file)
-            .lines()
-            .filter_map(|line| line.ok()))?;
+            let wire_a_value = *circuit.emulate().get("a").expect("Wire a should have a value");
+            println!("Value of wire a: {}", wire_a_value);
 
-        println!("Value of wire a: {}", circuit.emulate().get("a").expect("Wire a should have a value"));
+            wire_a_value
+        };
+
+        // Now, take the signal you got on wire a, override wire b to that signal, and reset the
+        // other wires (including wire a). What new signal is ultimately provided to wire a?
+        {
+            let mut circuit = Circuit::from_lines(BufReader::new(File::open(path)?)
+                .lines()
+                .filter_map(|line| line.ok()))?;
+
+            circuit.inputs_by_wire.insert(
+                String::from("b"),
+                Input::DirectSource(Source::Signal(wire_a_value))
+            );
+
+            let more_different_wire_a_value =
+                *circuit.emulate().get("a").expect("Wire a should have a value");
+
+            println!("Value of wire a after override shenanigans: {}", more_different_wire_a_value);
+        }
 
         Ok(())
     } else {
@@ -77,7 +98,7 @@ impl Circuit {
     fn resolve_source(&self, source: &Source) -> Result<u16, ()> {
         match source {
             Source::Signal(value) => Ok(*value),
-            Source::Wire(wire) => self.values_by_wire.get(wire).map(|v| *v).ok_or(()),
+            Source::Wire(wire) => self.values_by_wire.get(wire).copied().ok_or(()),
         }
     }
 }
