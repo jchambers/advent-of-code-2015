@@ -18,7 +18,12 @@ name = "day04"
 [[bin]]
 name = "day05"
 
+[[bin]]
+name = "day06"
+
 [dependencies]
 itertools = "0.10.5"
+lazy_static = "1.4.0"
 md5 = "0.7.0"
 num_cpus = "1.14.0"
+regex = "1.7.0"
