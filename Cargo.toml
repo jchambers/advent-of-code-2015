@@ -24,10 +24,14 @@ name = "day06"
 [[bin]]
 name = "day07"
 
+[[bin]]
+name = "day08"
+
 [dependencies]
 indoc = "1.0"
 itertools = "0.10.5"
 lazy_static = "1.4.0"
 md5 = "0.7.0"
+memchr = "2.5.0"
 num_cpus = "1.14.0"
 regex = "1.7.0"

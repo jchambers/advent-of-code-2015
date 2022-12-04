@@ -10,6 +10,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "md5",
+ "memchr",
  "num_cpus",
  "regex",
 ]
