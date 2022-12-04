@@ -11,11 +11,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             .filter_map(|line| line.ok())
             .collect();
 
-        let delta: usize = strings.iter()
-            .map(|string| code_characters(string) - memory_characters(string))
-            .sum();
+        {
+            let memory_delta: usize = strings.iter()
+                .map(|string| code_characters(string) - memory_characters(string))
+                .sum();
 
-        println!("Total difference between size in code and size in memory: {}", delta);
+            println!("Total difference between size in code and size in memory: {}", memory_delta);
+        }
+
+        {
+            let escaped_delta: usize = strings.iter()
+                .map(|string| escaped_characters(string) - code_characters(string))
+                .sum();
+
+            println!("Total difference between size when escaped and size in code: {}", escaped_delta);
+        }
 
         Ok(())
     } else {
@@ -29,6 +39,10 @@ fn code_characters(string: &str) -> usize {
 
 fn memory_characters(string: &str) -> usize {
     parse_escaped_string(string).chars().count()
+}
+
+fn escaped_characters(string: &str) -> usize {
+    escape(string).chars().count()
 }
 
 fn parse_escaped_string(escaped_string: &str) -> String {
@@ -61,6 +75,22 @@ fn parse_escaped_string(escaped_string: &str) -> String {
     string
 }
 
+fn escape(string: &str) -> String {
+    let mut escaped_string = String::from('"');
+
+    string
+        .chars()
+        .for_each(|c| match c {
+            '\\' => escaped_string.push_str(r#"\\"#),
+            '"' => escaped_string.push_str(r#"\""#),
+            _ => escaped_string.push(c),
+        });
+
+    escaped_string.push('"');
+
+    escaped_string
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -87,5 +117,13 @@ mod test {
         assert_eq!("abc", parse_escaped_string(r#""abc""#));
         assert_eq!("aaa\"aaa", parse_escaped_string(r#""aaa\"aaa""#));
         assert_eq!("'", parse_escaped_string(r#""\x27""#));
+    }
+
+    #[test]
+    fn test_escape() {
+        assert_eq!(r#""\"\"""#, escape(r#""""#));
+        assert_eq!(r#""\"abc\"""#, escape(r#""abc""#));
+        assert_eq!(r#""\"aaa\\\"aaa\"""#, escape(r#""aaa\"aaa""#));
+        assert_eq!(r#""\"\\x27\"""#, escape(r#""\x27""#));
     }
 }
