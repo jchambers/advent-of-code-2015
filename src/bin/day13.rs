@@ -11,10 +11,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
 
     if let Some(path) = args.get(1) {
-        let seating_arrangement = SeatingArrangement::from_str(fs::read_to_string(path)?.as_str())?;
+        let mut seating_arrangement = SeatingArrangement::from_str(fs::read_to_string(path)?.as_str())?;
 
         println!(
             "Happiness change with optimal seating arrangement: {}",
+            seating_arrangement.change_in_happiness(seating_arrangement.optimal_arrangement().as_slice())
+        );
+
+        seating_arrangement.add_host();
+
+        println!(
+            "Happiness change with optimal seating arrangement (including host): {}",
             seating_arrangement.change_in_happiness(seating_arrangement.optimal_arrangement().as_slice())
         );
 
@@ -86,6 +93,19 @@ impl SeatingArrangement {
         }
 
         happiness_change
+    }
+
+    fn add_host(&mut self) {
+        const HOST: &str = "Host";
+
+        let guests: Vec<String> = self.guests().map(String::from).collect();
+
+        for guest in guests {
+            let guest = guest.to_string();
+
+            self.happiness_changes.entry(HOST.to_string()).or_insert_with(HashMap::new).insert(guest.clone(), 0);
+            self.happiness_changes.entry(guest).or_insert_with(HashMap::new).insert(HOST.to_string(), 0);
+        }
     }
 }
 
