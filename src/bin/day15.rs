@@ -12,7 +12,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(path) = args.get(1) {
         let recipe = Recipe::from_str(fs::read_to_string(path)?.as_str())?;
 
-        println!("Optimal recipe score: {}", recipe.optimize_ingredients());
+        println!(
+            "Optimal recipe score: {}",
+            recipe.optimize_ingredients(None)
+        );
+
+        println!(
+            "Optimal recipe score with 500 calorie target: {}",
+            recipe.optimize_ingredients(Some(500))
+        );
 
         Ok(())
     } else {
@@ -26,7 +34,7 @@ struct Recipe {
 }
 
 impl Recipe {
-    fn optimize_ingredients(&self) -> u64 {
+    fn optimize_ingredients(&self, target_calories: Option<i32>) -> u64 {
         let properties: Vec<&Properties> = self.ingredients.values().collect();
         let mut quantities = vec![0; properties.len()];
         let mut stack: Vec<(usize, i32)> = (0..=100).map(|amount| (0, amount)).collect();
@@ -43,6 +51,13 @@ impl Recipe {
                     .cloned()
                     .zip(quantities.iter().cloned())
                     .collect();
+
+                if let Some(target_calories) = target_calories {
+                    if Self::calories(&ingredients) != target_calories {
+                        continue;
+                    }
+                }
+
                 best_score = max(best_score, Self::score(&ingredients));
             } else {
                 // Keep exploring
@@ -74,6 +89,17 @@ impl Recipe {
             * max(0, combined_properties.durability) as u64
             * max(0, combined_properties.flavor) as u64
             * max(0, combined_properties.texture) as u64
+    }
+
+    fn calories(ingredients: &[(&Properties, i32)]) -> i32 {
+        debug_assert!(ingredients.iter().map(|(_, amount)| amount).sum::<i32>() == 100);
+
+        let combined_properties: Properties = ingredients
+            .iter()
+            .map(|&(properties, quantity)| *properties * quantity)
+            .sum();
+
+        combined_properties.calories
     }
 }
 
@@ -241,7 +267,17 @@ mod test {
             62842880,
             Recipe::from_str(TEST_RECIPE)
                 .unwrap()
-                .optimize_ingredients()
+                .optimize_ingredients(None)
+        );
+    }
+
+    #[test]
+    fn test_recipe_optimize_ingredients_with_calorie_target() {
+        assert_eq!(
+            57600000,
+            Recipe::from_str(TEST_RECIPE)
+                .unwrap()
+                .optimize_ingredients(Some(500))
         );
     }
 }
